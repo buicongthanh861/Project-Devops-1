@@ -2,11 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven_3_8_4'
-    }
-
-    environment {
-        JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
+        maven 'Maven_3_9_11'
     }
 
     stages {
@@ -20,9 +16,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo '--------------- build started------------'
-                dir('webapp'){
                 sh 'mvn clean package -Dmaven.test.skip=true'
-                }
             }
         }
     }
