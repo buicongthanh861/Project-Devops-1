@@ -20,7 +20,9 @@ pipeline {
         stage('Build') {
             steps {
                 echo '--------------- build started------------'
+                dir('webapp'){
                 sh 'mvn clean package -Dmaven.test.skip=true'
+                }
             }
         }
     }
