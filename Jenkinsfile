@@ -29,16 +29,12 @@ pipeline {
         stage('Deploy to tomcat') {
             steps {
                 echo '------------deploying tomcat server------'
-                script {
-                    def warFile = findFiles(glob:'target/*.war').[0].name
-                    echo "Deploying file: ${warFile}"
-
                     //copy file war vao thu muc webapps cua tomcat
-                    sh """
-                        sudo cp target/${warFile} /opt/tomcat/apache-tomcat-10.1.49/webapps/
+                    sh '''
+                        sudo cp target/*.war /opt/tomcat/apache-tomcat-10.1.49/webapps/
                         echo "Copy file WAR thành công!"
-                    """
-                }
+                    '''
+                
             }
         }
         
