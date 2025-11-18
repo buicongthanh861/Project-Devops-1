@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven_3_9_11'
+        maven 'Maven_3_8_7'
     }
 
     stages {
 
         stage('Clone') {
             steps {
-                git url: 'https://github.com/buicongthanh861/Project-Devops-1.git'
+                git branch: 'main', url: 'https://github.com/buicongthanh861/Project-Devops-1.git'
             }
         }
 
