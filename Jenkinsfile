@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     tools {
+        git 'Git'
         maven 'Maven_3_8_7'
     }
 

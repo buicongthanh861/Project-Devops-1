@@ -2,42 +2,48 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <!-- Removed parent because it does not exist -->
+  <parent>
     <groupId>com.example.maven-project</groupId>
-    <artifactId>webapp</artifactId>
+    <artifactId>maven-project</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
 
-    <name>Webapp</name>
-    <description>Webapp.</description>
+  <artifactId>webapp</artifactId>
+  <packaging>war</packaging>
+  <name>Webapp</name>
+  <description>Webapp.</description>
 
-    <build>
-        <finalName>${project.artifactId}</finalName>
+  <build>
+    <finalName>${project.artifactId}</finalName>
 
-        <plugins>
-            <plugin>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jetty-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
+    <plugins>
+      <plugin>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>8.1.16.v20140903</version>
+      </plugin>
+    </plugins>
+  </build>
 
-    <dependencies>
+  <dependencies>
 
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+      <scope>provided</scope>
+    </dependency>
 
-        <dependency>
-            <groupId>javax.servlet.jsp</groupId>
-            <artifactId>jsp-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
+    <dependency>
+      <groupId>javax.servlet.jsp</groupId>
+      <artifactId>jsp-api</artifactId>
+      <version>2.1</version>
+      <scope>provided</scope>
+    </dependency>
 
-    </dependencies>
+  </dependencies>
 
 </project>
