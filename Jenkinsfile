@@ -6,13 +6,7 @@ pipeline {
         maven 'Maven_3_8_7'
     }
 
-    environment {
-        TOMCAT_HOST = "47.128.65.255:8080"
-        TOMCAT_CREDS = credentials('tomcat-deployer')
-    }
-
     stages {
-
         stage('Clone') {
             steps {
                 git branch: 'main', url: 'https://github.com/buicongthanh861/Project-Devops-1.git'
@@ -26,17 +20,26 @@ pipeline {
                 sh 'ls -la target/*.war'
             }
         }
+        
         stage('Deploy to tomcat') {
             steps {
                 echo '------------deploying tomcat server------'
-                    //copy file war vao thu muc webapps cua tomcat
-                    sh '''
-                        sudo cp target/*.war /opt/tomcat/apache-tomcat-10.1.49/webapps/
-                        echo "Copy file WAR thành công!"
-                    '''
-                
+                sshPublisher(
+                    publishers: [
+                        sshPublisherDesc(
+                            configName: 'tomcat-server',  // Tên SSH server đã cấu hình
+                            transfers: [
+                                sshTransfer(
+                                    sourceFiles: 'target/*.war',
+                                    removePrefix: 'target',
+                                    remoteDirectory: '',
+                                    execCommand: 'echo "Deploy thành công!"'
+                                )
+                            ]
+                        )
+                    ]
+                )
             }
         }
-        
     }
 }
