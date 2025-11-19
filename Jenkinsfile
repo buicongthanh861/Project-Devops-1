@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        PATH = "/opt/apache-maven-3.9.9/bin:$PATH "
+        PATH = "/opt/apache-maven-3.9.9/bin:$PATH"
     }   
 
     stages {
@@ -24,7 +24,10 @@ pipeline {
                 sh 'echo "WAR file:" && ls -la target/*.war'
             }
         }
-       
-        
+        stage('build to tomcat') {
+            steps {
+                deploy adapters: [tomcat9(alternativeDeploymentContext: '', path: '', url: 'http://54.169.1.81:8080')], contextPath: null, war: '**/*.war'
+            }
+        }
     }
 }
