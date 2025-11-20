@@ -23,10 +23,7 @@ pipeline {
                 echo '--------------- build started ------------'
                 sh 'mvn clean package -Dmaven.test.skip=true'
                 sh 'echo "WAR file:" && ls -la target/webapp.war'  
-                
-                // Copy với đúng tên app.war như Dockerfile mong đợi
                 sh 'cp target/webapp.war ./app.war'
-                sh 'ls -la app.war'
             }
         }
 
@@ -34,8 +31,8 @@ pipeline {
             steps {
                 echo '---------building docker---------'
                 
-                // Kiểm tra các file cần thiết
-                sh 'ls -la Dockerfile app.war tomcat-users.xml context.xml || echo "Some files missing"'
+                // Kiểm tra chỉ cần Dockerfile và app.war
+                sh 'ls -la Dockerfile app.war'
                 
                 // Build Docker image
                 sh "docker build -t ${env.DOCKER_IMAGE} ."
