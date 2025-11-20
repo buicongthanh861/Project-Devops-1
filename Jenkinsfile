@@ -28,7 +28,6 @@ pipeline {
         stage('Build docker image') {
             steps {
                 echo '---------building docker---------'
-                // Build Docker image
                 sh "docker build -t ${env.DOCKER_IMAGE} ."
             }
         }
