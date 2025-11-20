@@ -9,7 +9,6 @@ pipeline {
         PATH = "/opt/apache-maven-3.9.9/bin:$PATH"
         DOCKERHUB_CREDENTIALS = credentials('DockerHub-cred')
         DOCKER_IMAGE = "congthanh19/regapp:${env.BUILD_NUMBER}"
-        DOCKER_IMAGE_LATEST = "congthanh19/regapp:latest"
     }   
 
     stages {
@@ -23,60 +22,43 @@ pipeline {
             steps {
                 echo '--------------- build started ------------'
                 sh 'mvn clean package -Dmaven.test.skip=true'
-                sh 'echo "WAR file:" && ls -la target/*.war'  
+                sh 'echo "WAR file:" && ls -la target/webapp.war'  
+                
+                // Copy với đúng tên app.war như Dockerfile mong đợi
+                sh 'cp target/webapp.war ./app.war'
+                sh 'ls -la app.war'
             }
         }
-        
-        // stage('Deploy to tomcat') {
-        //     steps {
-        //         deploy adapters: [tomcat9(
-        //             credentialsId: 'tomcat-cred', 
-        //             url: 'http://54.169.1.81:8080/'
-        //         )], 
-        //         war: 'webapp/target/*.war',  
-        //         contextPath: null
-        //     }
-        // }
 
         stage('Build docker image') {
             steps {
                 echo '---------building docker---------'
-                sh """
-                    docker build -t ${env.DOCKER_IMAGE} .
-                    docker tag ${env.DOCKER_IMAGE} ${env.DOCKER_IMAGE_LATEST}
-                """
-                sh "docker images | grep congthanh19 "
+                
+                // Kiểm tra các file cần thiết
+                sh 'ls -la Dockerfile app.war tomcat-users.xml context.xml || echo "Some files missing"'
+                
+                // Build Docker image
+                sh "docker build -t ${env.DOCKER_IMAGE} ."
             }
         }
+
         stage('login to dockerhub') {
-            steps{
-                echo '--------------- Logging to DockerHub ------------'
+            steps {
                 sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
             }
         }
-        stage('Push Docker Image'){
+
+        stage('Push Docker Image') {
             steps {
-                echo "-------------------Pushing to DockerHub ---------------------"
-                sh """
-                    docker push ${env.DOCKER_IMAGE}
-                    docker push ${env.DOCKER_IMAGE_LATEST}
-                """
+                sh "docker push ${env.DOCKER_IMAGE}"
             }
         }
     }
 
     post {
-        always{
-            echo ' ----------------Cleanup------------'
+        always {
+            echo '--------------- Cleanup ------------'
             sh 'docker system prune -f || true'
-        }
-        success {
-            echo "✅ Docker image pushed successfully!"
-            sh """
-                echo "Docker Image: ${env.DOCKER_IMAGE}"
-                echo "Docker Image Latest: ${env.DOCKER_IMAGE_LATEST}"
-                echo "K8s can now pull this image for deployment"
-            """
         }
     }
 }
