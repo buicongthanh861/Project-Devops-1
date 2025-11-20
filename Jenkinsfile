@@ -22,18 +22,12 @@ pipeline {
             steps {
                 echo '--------------- build started ------------'
                 sh 'mvn clean package -Dmaven.test.skip=true'
-                sh 'echo "WAR file:" && ls -la target/webapp.war'  
-                sh 'cp target/webapp.war ./app.war'
             }
         }
 
         stage('Build docker image') {
             steps {
                 echo '---------building docker---------'
-                
-                // Kiểm tra chỉ cần Dockerfile và app.war
-                sh 'ls -la Dockerfile app.war'
-                
                 // Build Docker image
                 sh "docker build -t ${env.DOCKER_IMAGE} ."
             }
