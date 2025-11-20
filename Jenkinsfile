@@ -23,7 +23,7 @@ pipeline {
             steps {
                 echo '--------------- build started ------------'
                 sh 'mvn clean package -Dmaven.test.skip=true'
-                sh 'echo "WAR file:" && ls -la webapp/target/*.war'  
+                sh 'echo "WAR file:" && ls -la target/*.war'  
             }
         }
         
