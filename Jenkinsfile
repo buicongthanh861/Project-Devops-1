@@ -21,14 +21,18 @@ pipeline {
         stage('Build') {
             steps {
                 echo '--------------- build started ------------'
-                sh 'mvn clean package -Dmaven.test.skip=true'
+                dir('webapp') {
+                    sh 'mvn clean package -Dmaven.test.skip=true'
+                }
             }
         }
 
         stage('Build docker image') {
             steps {
                 echo '---------building docker---------'
-                sh "docker build -t ${env.DOCKER_IMAGE} ."
+                dir('webapp') {
+                    sh "docker build -t ${env.DOCKER_IMAGE} ."
+                }
             }
         }
 
