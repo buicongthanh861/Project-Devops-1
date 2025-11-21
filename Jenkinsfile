@@ -12,6 +12,16 @@ pipeline {
     }   
 
     stages {
+        stage('Clean Previous') {
+            steps {
+                sh """
+                    docker stop my-app-test || true
+                    docker rm my-app-test || true
+                    docker rmi congthanh19/regapp:${env.BUILD_NUMBER} || true
+                """
+            }
+        }
+        
         stage('Clone') {
             steps {
                 git branch: 'main', url: 'https://github.com/buicongthanh861/Project-Devops-1.git'
@@ -31,8 +41,18 @@ pipeline {
             steps {
                 echo '---------building docker---------'
                 dir('webapp') {
-                    sh "docker build -t ${env.DOCKER_IMAGE} ."
+                    sh "docker build --no-cache -t ${env.DOCKER_IMAGE} ."
                 }
+            }
+        }
+
+        stage('Test Deployment') {
+            steps {
+                sh """
+                    docker run -d -p 8080:8080 --name my-app-test ${env.DOCKER_IMAGE}
+                    sleep 30
+                    curl -f http://localhost:8080/ || echo "Test failed"
+                """
             }
         }
 
@@ -46,13 +66,6 @@ pipeline {
             steps {
                 sh "docker push ${env.DOCKER_IMAGE}"
             }
-        }
-    }
-
-    post {
-        always {
-            echo '--------------- Cleanup ------------'
-            sh 'docker system prune -f || true'
         }
     }
 }
