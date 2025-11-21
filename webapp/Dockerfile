@@ -1,10 +1,9 @@
-FROM tomcat:latest
+FROM tomcat:9-jre11
 
-# Xóa webapp ROOT mặc định và copy các webapp khác
-RUN rm -rf /usr/local/tomcat/webapps/ROOT && \
-    cp -R /usr/local/tomcat/webapps.dist/* /usr/local/tomcat/webapps
+# Xóa apps mặc định của Tomcat
+RUN rm -rf /usr/local/tomcat/webapps/*
 
-# Copy ứng dụng của bạn
+# COPY ĐÚNG TÊN FILE và đổi thành ROOT.war
 COPY target/webapp.war /usr/local/tomcat/webapps/ROOT.war
 
 EXPOSE 8080
