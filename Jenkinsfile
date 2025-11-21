@@ -9,6 +9,7 @@ pipeline {
         PATH = "/opt/apache-maven-3.9.9/bin:$PATH"
         DOCKERHUB_CREDENTIALS = credentials('DockerHub-cred')
         DOCKER_IMAGE = "congthanh19/regapp:${env.BUILD_NUMBER}"
+        KUBE_NAMESPACE = "congthanh"
     }   
 
     stages {
@@ -67,5 +68,31 @@ pipeline {
                 sh "docker push ${env.DOCKER_IMAGE}"
             }
         }
+        stage('Kubernetes Deployment') {
+            steps {
+                withKubeConfig([credentialsId: 'kubeconfig-devsecops']) {
+
+            // Tạo namespace an toàn
+                sh """
+                kubectl create namespace congthanh --dry-run=client -o yaml | kubectl apply -f -
+                """
+
+            // Xóa nếu có resources cũ (không fail nếu không có)
+                sh """
+                kubectl delete -f regapp-deployment.yaml -f regapp-service.yml -n congthanh --ignore-not-found=true
+                """
+
+            // Deploy phiên bản mới
+                sh """
+                kubectl apply -f regapp-deployment.yaml -f regapp-service.yml -n congthanh
+                """
+
+            // Kiểm tra rolling update
+                sh """
+                kubectl rollout status deployment/regapp-deployment -n congthanh --timeout=300s
+                """
+        }
+    }
+}
     }
 }

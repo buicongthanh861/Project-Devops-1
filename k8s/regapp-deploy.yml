@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: regapp-deployment
+  name: regapp-deployment 
   labels:
     app: regapp
 spec:
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: regapp
-        image: congthanh19/regapp:latest
+        image: congthanh19/regapp:${BUILD_NUMBER}
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
