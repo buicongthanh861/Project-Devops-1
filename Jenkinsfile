@@ -70,7 +70,7 @@ pipeline {
         }
         stage('Kubernetes Deployment') {
             steps {
-                withKubeConfig([credentialsId: 'kubeconfig-devsecops']) {
+                withCredentials([file(credentialsId: 'kubeconfig-devsecops', variable: 'KUBECONFIG')]) {
 
             // Tạo namespace an toàn
                 sh """
