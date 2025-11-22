@@ -73,7 +73,7 @@ pipeline {
             steps {
                 sh """
                     # 1. Tạo namespace
-                    kubectl create namespace ${env.KUBE_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+                    kubectl create namespace ${env.KUBE_NAMESPACE} 2>/dev/null || true
                     
                     # 2. Xóa deployment cũ nếu có
                     kubectl delete -f regapp-deployment.yml -n ${env.KUBE_NAMESPACE} --ignore-not-found=true --wait=false
