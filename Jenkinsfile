@@ -76,8 +76,8 @@ pipeline {
                     kubectl create namespace ${env.KUBE_NAMESPACE} 2>/dev/null || true
                     
                     # 2. Xóa deployment cũ nếu có
-                    kubectl delete -f regapp-deployment.yml -n ${env.KUBE_NAMESPACE} --ignore-not-found=true --wait=false
-                    kubectl delete -f regapp-service.yml -n ${env.KUBE_NAMESPACE} --ignore-not-found=true --wait=false
+                    kubectl delete -f regapp-deployment.yaml -n ${env.KUBE_NAMESPACE} --ignore-not-found=true --wait=false
+                    kubectl delete -f regapp-service.yaml -n ${env.KUBE_NAMESPACE} --ignore-not-found=true --wait=false
                     
                     # 3. Đợi xóa hoàn tất
                     sleep 15
