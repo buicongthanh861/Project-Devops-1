@@ -71,26 +71,25 @@ pipeline {
 
         stage('Kubernetes Deployment') {
             steps {
+                withCredentials([usernamePassword(
+                credentialsId: 'aws-cred', 
+                usernameVariable: 'AWS_ACCESS_KEY_ID', 
+                passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                )]) {
                 sh """
-                    # 1. Tạo namespace
-                    kubectl create namespace ${env.KUBE_NAMESPACE} 2>/dev/null || true
-                    
-                    # 2. Xóa deployment cũ nếu có
-                    kubectl delete -f regapp-deployment.yaml -n ${env.KUBE_NAMESPACE} --ignore-not-found=true --wait=false
-                    kubectl delete -f regapp-service.yaml -n ${env.KUBE_NAMESPACE} --ignore-not-found=true --wait=false
-                    
-                    # 3. Đợi xóa hoàn tất
-                    sleep 15
-                    
-                    # 4. Deploy mới
-                    kubectl apply -f regapp-deployment.yml -n ${env.KUBE_NAMESPACE}
-                    kubectl apply -f regapp-service.yml -n ${env.KUBE_NAMESPACE}
-                    
-                    # 5. Kiểm tra
-                    kubectl rollout status deployment/regapp-deployment -n ${env.KUBE_NAMESPACE} --timeout=300s
-                    echo  Deployment thành công!"
-                    kubectl get pods,svc -n ${env.KUBE_NAMESPACE}
+                # Cấu hình AWS và EKS
+                export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                aws eks update-kubeconfig --name kubernets-cluster --region ap-southeast-1
+
+                # Deploy
+                kubectl create namespace congthanh 2>/dev/null || true
+                kubectl apply -f regapp-deployment.yaml -n congthanh
+                kubectl apply -f regapp-service.yaml -n congthanh
+                kubectl rollout status deployment/regapp-deployment -n congthanh --timeout=300s
+                kubectl get pods -n congthanh
                 """
+                }
             }
         }
 
