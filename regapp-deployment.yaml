@@ -2,19 +2,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: regapp-deployment
-  namespace: congthanh  
-  labels:
-    app: regapp
+  namespace: congthanh
 spec:
   replicas: 2
   selector:
     matchLabels:
       app: regapp
-  strategy:  
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0  
   template:
     metadata:
       labels:
@@ -22,28 +15,6 @@ spec:
     spec:
       containers:
       - name: regapp
-        image: congthanh19/regapp:${BUILD_NUMBER}
-        imagePullPolicy: Always
+        image: congthanh19/regapp:${BUILD_NUMBER} 
         ports:
         - containerPort: 8080
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 3
-        resources:  
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
