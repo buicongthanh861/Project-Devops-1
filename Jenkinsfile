@@ -69,34 +69,31 @@ pipeline {
             }
         }
 
-        stage('Kubernetes Setup') {
+        stage('Kubernetes Deployment') {
             steps {
                 sh """
-                # Tạo namespace nếu chưa tồn tại
-                kubectl create namespace ${env.KUBE_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
-            
-                # Kiểm tra namespace
-                kubectl get namespaces
+                    # 1. Tạo namespace
+                    kubectl create namespace ${env.KUBE_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+                    
+                    # 2. Xóa deployment cũ nếu có
+                    kubectl delete -f regapp-deployment.yml -n ${env.KUBE_NAMESPACE} --ignore-not-found=true --wait=false
+                    kubectl delete -f regapp-service.yml -n ${env.KUBE_NAMESPACE} --ignore-not-found=true --wait=false
+                    
+                    # 3. Đợi xóa hoàn tất
+                    sleep 15
+                    
+                    # 4. Deploy mới
+                    kubectl apply -f regapp-deployment.yml -n ${env.KUBE_NAMESPACE}
+                    kubectl apply -f regapp-service.yml -n ${env.KUBE_NAMESPACE}
+                    
+                    # 5. Kiểm tra
+                    kubectl rollout status deployment/regapp-deployment -n ${env.KUBE_NAMESPACE} --timeout=300s
+                    echo  Deployment thành công!"
+                    kubectl get pods,svc -n ${env.KUBE_NAMESPACE}
                 """
             }
         }
 
-        stage('Kubernetes Deployment') {
-            steps {
-                script {
-                    kubernetesDeploy(
-                        configs: 'regapp-deployment.yml, regapp-service.yml',
-                        kubeconfigId: 'kubernetes',
-                        enableConfigSubstitution: true
-                    )
-                    sh """
-                        kubectl --kubeconfig=/path/to/kubeconfig rollout status \
-                            deployment/regapp-deployment -n ${env.KUBE_NAMESPACE} --timeout=300s
-                    """
-                }
-
-            }
-        }
     }
 
     post {
