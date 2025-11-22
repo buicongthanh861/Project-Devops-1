@@ -69,30 +69,32 @@ pipeline {
             }
         }
 
+        stage('Kubernetes Setup') {
+            steps {
+                sh """
+                # Tạo namespace nếu chưa tồn tại
+                kubectl create namespace ${env.KUBE_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+            
+                # Kiểm tra namespace
+                kubectl get namespaces
+                """
+            }
+        }
+
         stage('Kubernetes Deployment') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'aws-cred', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                script {
+                    kubernetesDeploy(
+                        configs: 'regapp-deployment.yml, regapp-service.yml',
+                        kubeconfigId: 'kubernetes',
+                        enableConfigSubstitution: true
+                    )
                     sh """
-                        export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                        export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-                        export AWS_DEFAULT_REGION=ap-southeast-1
-
-                        # Update kubeconfig cho EKS
-                        aws eks update-kubeconfig --name kubernets-cluster --region ap-southeast-1
-
-                        # Tạo namespace an toàn
-                        kubectl create namespace ${env.KUBE_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
-
-                        # Xóa nếu có resources cũ (không fail nếu không có)
-                        kubectl delete -f regapp-deployment.yaml -f regapp-service.yml -n ${env.KUBE_NAMESPACE} --ignore-not-found=true
-
-                        # Deploy phiên bản mới
-                        kubectl apply -f regapp-deployment.yaml -f regapp-service.yml -n ${env.KUBE_NAMESPACE}
-
-                        # Kiểm tra rolling update
-                        kubectl rollout status deployment/regapp-deployment -n ${env.KUBE_NAMESPACE} --timeout=300s
+                        kubectl --kubeconfig=/path/to/kubeconfig rollout status \
+                            deployment/regapp-deployment -n ${env.KUBE_NAMESPACE} --timeout=300s
                     """
                 }
+
             }
         }
     }
