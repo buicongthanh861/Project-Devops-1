@@ -71,24 +71,30 @@ pipeline {
 
         stage('Kubernetes Deployment') {
             steps {
-                withCredentials([usernamePassword(
-                credentialsId: 'aws-cred', 
-                usernameVariable: 'AWS_ACCESS_KEY_ID', 
-                passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                )]) {
+                withAWS(credentials: 'aws-cred', region: 'ap-southeast-1') {
                 sh """
-                # Cấu hình AWS và EKS
-                export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                # Update kubeconfig cho EKS
                 aws eks update-kubeconfig --name kubernets-cluster --region ap-southeast-1
 
-                # Deploy
-                kubectl create namespace congthanh 2>/dev/null || true
-                kubectl apply -f regapp-deployment.yaml -n congthanh
-                kubectl apply -f regapp-service.yaml -n congthanh
-                kubectl rollout status deployment/regapp-deployment -n congthanh --timeout=300s
-                kubectl get pods -n congthanh
-                """
+                # Kiểm tra kết nối
+                echo "🔍 Checking Kubernetes connection..."
+                kubectl cluster-info
+                kubectl get nodes
+
+                # 1. Tạo namespace
+                kubectl create namespace ${env.KUBE_NAMESPACE} 2>/dev/null || true
+                
+                # 2. Deploy application
+                kubectl apply -f regapp-deployment.yaml -n ${env.KUBE_NAMESPACE}
+                kubectl apply -f regapp-service.yaml -n ${env.KUBE_NAMESPACE}
+                
+                # 3. Kiểm tra deployment
+                kubectl rollout status deployment/regapp-deployment -n ${env.KUBE_NAMESPACE} --timeout=300s
+                
+                # 4. Verify
+                echo "✅ Deployment thành công!"
+                kubectl get pods,svc -n ${env.KUBE_NAMESPACE}
+            """
                 }
             }
         }
