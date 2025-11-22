@@ -57,7 +57,7 @@ pipeline {
             }
         }
 
-        stage('login to dockerhub') {
+        stage('Login to DockerHub') {
             steps {
                 sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
             }
@@ -68,31 +68,41 @@ pipeline {
                 sh "docker push ${env.DOCKER_IMAGE}"
             }
         }
+
         stage('Kubernetes Deployment') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig-devsecops', variable: 'KUBECONFIG')]) {
+                withCredentials([usernamePassword(credentialsId: 'aws-cred', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh """
+                        export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                        export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                        export AWS_DEFAULT_REGION=ap-southeast-1
 
-            // Tạo namespace an toàn
-                sh """
-                kubectl create namespace congthanh --dry-run=client -o yaml | kubectl apply -f -
-                """
+                        # Update kubeconfig cho EKS
+                        aws eks update-kubeconfig --name kubernets-cluster --region ap-southeast-1
 
-            // Xóa nếu có resources cũ (không fail nếu không có)
-                sh """
-                kubectl delete -f regapp-deployment.yaml -f regapp-service.yml -n congthanh --ignore-not-found=true
-                """
+                        # Tạo namespace an toàn
+                        kubectl create namespace ${env.KUBE_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
 
-            // Deploy phiên bản mới
-                sh """
-                kubectl apply -f regapp-deployment.yaml -f regapp-service.yml -n congthanh
-                """
+                        # Xóa nếu có resources cũ (không fail nếu không có)
+                        kubectl delete -f regapp-deployment.yaml -f regapp-service.yml -n ${env.KUBE_NAMESPACE} --ignore-not-found=true
 
-            // Kiểm tra rolling update
-                sh """
-                kubectl rollout status deployment/regapp-deployment -n congthanh --timeout=300s
-                """
+                        # Deploy phiên bản mới
+                        kubectl apply -f regapp-deployment.yaml -f regapp-service.yml -n ${env.KUBE_NAMESPACE}
+
+                        # Kiểm tra rolling update
+                        kubectl rollout status deployment/regapp-deployment -n ${env.KUBE_NAMESPACE} --timeout=300s
+                    """
+                }
+            }
         }
     }
-}
+
+    post {
+        always {
+            sh """
+                docker stop my-app-test || true
+                docker rm my-app-test || true
+            """
+        }
     }
 }
