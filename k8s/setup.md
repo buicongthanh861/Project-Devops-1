@@ -10,3 +10,4 @@ eksctl create cluster \
 
 aws eks update-kubeconfig --name kubernets-cluster --region ap-southeast-1
 cat /root/.kube/config
+eksctl delete cluster --name kubernets-cluster --region ap-southeast-1

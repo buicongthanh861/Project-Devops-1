@@ -131,28 +131,21 @@ pipeline {
                 kubectl wait --for=condition=ready pod -l app=grafana -n monitoring --timeout=120s
                 echo "Deployment thành công!"
 
+                echo "=== DEPLOYMENT URLs ==="
+                echo "Ứng dụng:"
+                kubectl get svc regapp-service -n ${env.KUBE_NAMESPACE} -o jsonpath='http://{.status.loadBalancer.ingress[0].hostname}'
+            
+                echo -e "\\nPrometheus:"
+                kubectl get svc prometheus-service -n monitoring -o jsonpath='http://{.status.loadBalancer.ingress[0].hostname}'
+            
+                echo -e "\\nGrafana:"
+                kubectl get svc grafana-service -n monitoring -o jsonpath='http://{.status.loadBalancer.ingress[0].hostname}'
+                echo "======================"
+
                 """
             }
         }
     }
-
-        stage('Display Monitoring URLs') {
-            steps {
-                sh """
-                # Hiển thị URLs
-                echo "=== DEPLOYMENT URLs ==="
-                echo "Ứng dụng:"
-                kubectl get svc regapp-service -n ${env.KUBE_NAMESPACE} -o jsonpath='http://{.status.loadBalancer.ingress[0].hostname}'
-        
-                echo -e "\\nPrometheus:"
-                kubectl get svc prometheus-service -n monitoring -o jsonpath='http://{.status.loadBalancer.ingress[0].hostname}'
-        
-                echo -e "\\nGrafana:"
-                kubectl get svc grafana-service -n monitoring -o jsonpath='http://{.status.loadBalancer.ingress[0].hostname}'
-                echo "======================"
-                """
-            }
-        }
     }
 
     post {
