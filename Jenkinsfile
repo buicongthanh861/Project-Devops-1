@@ -104,6 +104,7 @@ pipeline {
             )]) {
                 sh """
                 aws eks update-kubeconfig --name kubernets-cluster --region ap-southeast-1
+                kubectl create namespace congthanh --dry-run=client -o yaml | kubectl apply -f -
                 
                 # CÀI envsubst NẾU CHƯA CÓ
                 which envsubst || (apt-get update && apt-get install -y gettext-base)
