@@ -57,9 +57,11 @@ pipeline {
         stage('Run SCA Analysis Using Snyk') {
             steps {
                 withCredentials([string(credentialsId: 'synk', variable: 'SNYK_TOKEN')]) {
+                dir('webapp') {
                 sh '''
                 mvn snyk:test -Dsnyk.token=${SNYK_TOKEN} -fn
                 '''
+                }
                 }
             }
         }
