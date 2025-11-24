@@ -38,6 +38,30 @@ pipeline {
             }
         }
 
+        stage('sonarqube analysis') {
+            steps {
+                withCredentials([string(credentialsId:'sonarqube', variable:'SONAR_TOKEN')]) {
+                sh '''
+                mvn clean verify sonar:sonar \
+                -Dsonar.projectKey=buicongthanh861_Project-Devops-1 \
+                -Dsonar.organization=java-woof \
+                -Dsonar.host.url=https://sonarcloud.io \
+                -Dsonar.token=${SONAR_TOKEN}
+                '''
+                }
+            }
+        }
+
+        stage('Run SCA Analysis Using Snyk') {
+            steps {
+                withCredentials([string(credentialsId: 'synk', variable: 'SNYK_TOKEN')]) {
+                sh '''
+                mvn snyk:test -Dsnyk.token=${SNYK_TOKEN} -fn
+                '''
+                }
+            }
+        }
+
         stage('Build docker image') {
             steps {
                 echo '---------building docker---------'
@@ -77,9 +101,6 @@ pipeline {
                 credentialsId: 'aws-cred'
             )]) {
                 sh """
-                export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-                export AWS_DEFAULT_REGION=ap-southeast-1
                 aws eks update-kubeconfig --name kubernets-cluster --region ap-southeast-1
                 
                 # CÀI envsubst NẾU CHƯA CÓ
