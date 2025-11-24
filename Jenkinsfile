@@ -41,6 +41,7 @@ pipeline {
         stage('sonarqube analysis') {
             steps {
                 withCredentials([string(credentialsId:'sonarqube', variable:'SONAR_TOKEN')]) {
+                dir('webapp') {
                 sh '''
                 mvn clean verify sonar:sonar \
                 -Dsonar.projectKey=buicongthanh861_Project-Devops-1 \
@@ -48,6 +49,7 @@ pipeline {
                 -Dsonar.host.url=https://sonarcloud.io \
                 -Dsonar.token=${SONAR_TOKEN}
                 '''
+                }
                 }
             }
         }
